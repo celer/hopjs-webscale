@@ -1,0 +1,28 @@
+{
+  "name": "hopjs-webscale",
+  "version": "0.0.1",
+  "description": "Extentions for hopjs to support horizontal scalability",
+  "main": "index.js",
+  "keywords": [
+    "REST",
+    "RESTful",
+    "API",
+    "Android",
+    "Web",
+    "Framework"
+  ],
+  "scripts": {
+    "test": "(cd test && ./test.sh)"
+  },
+  "engine": "node 0.8.9",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/celer/hopjs-webscale.git"
+  },
+  "dependencies": {
+    "prettyjson": "~0.8.1",
+    "optimist": "~0.3.5",
+    "redis": "~0.8.2",
+    "http-proxy": "~0.10.0"
+  }
+}

@@ -1,0 +1,83 @@
+#!/usr/bin/env node
+
+var optimist = require('optimist');
+
+var pj = require('prettyjson');
+
+optimist.describe("redis-port","Redis port");
+optimist=optimist.describe("redis-host","Redis host");
+optimist=optimist.describe("redis-pw","Redis password");
+optimist=optimist.describe("set-primary-service","Specify the primary service to use");
+optimist=optimist.describe("del-primary-service","Delete a defined primary service");
+optimist=optimist.describe("list-services","List the currently active services");
+optimist=optimist.describe("resolve-service","Resolve the specified service");
+optimist=optimist.describe("add-route","Add a route");
+optimist=optimist.describe("del-route","Delete a route");
+optimist=optimist.describe("list-routes","List routes");
+optimist=optimist.describe("resolve-route","Resolve a route");
+optimist=optimist.describe("service","The name of the service");
+optimist=optimist.describe("json","Output json");
+
+var actions = ["set-primary-service","del-primary-service","list-services","resolve-service","add-route","del-route","list-routes","resolve-route","show-route-cache"];
+
+var argv = optimist.argv
+
+var redis = require('redis');
+var redisClient = redis.createClient(argv["redis-port"],argv["redis-host"]);
+if(argv["redis-pw"]) redisClient.auth(argv["redis-pw"]);
+
+var Service = require("../lib/service");
+
+var defaultHandler=function(err,res){
+			if(err){ console.error(err); process.exit(-1); }
+			if(argv.json){
+				console.log(JSON.stringify(res));
+			} else {
+				console.log(pj.render(res));
+			}
+			process.exit(0);
+}
+
+var Actions = {
+	"show-route-cache":function(input){
+		Service.loadRouteCache(redisClient,defaultHandler);
+	},
+	"set-primary-service":function(input){
+		Service.setPrimary(redisClient,input,defaultHandler);
+	},
+	"del-primary-service":function(input){
+		Service.delPrimary(redisClient,input,defaultHandler);
+	},
+	"list-services":function(){
+		Service.list(redisClient,defaultHandler);
+	},
+	"resolve-service":function(input){
+		Service.find(redisClient,input,defaultHandler);	
+	},
+	"add-route":function(input){
+		argv=optimist.demand("service").argv;
+		
+		Service.addRoute(redisClient,input,argv.service,defaultHandler);
+	},
+	"del-route":function(input){
+		Service.delRoute(redisClient,input,defaultHandler);
+	},
+	"list-routes":function(){
+		Service.listRoutes(redisClient,defaultHandler);
+	},
+	"resolve-route":function(input){
+		Service.resolveRoutes(redisClient,input,defaultHandler);
+	}
+}
+
+var matched=false;
+for(var action in Actions){
+	if(argv[action]){
+		matched=true;
+		Actions[action](argv[action]);
+	}
+}
+if(!matched){
+	optimist.showHelp();
+	process.exit(-1);
+}
