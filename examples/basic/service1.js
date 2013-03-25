@@ -5,7 +5,11 @@ var express = require('express')
   , http = require('http')
   , path = require('path');
 
+
 var app = express();
+
+
+var RedisStore = require('connect-redis')(express);
 
 var HopService = require('../../index.js');
 
@@ -15,8 +19,11 @@ app.configure(function(){
   app.set('view engine', 'jade');
   app.use(express.favicon());
   app.use(express.logger('dev'));
-  app.use(express.cookieParser('your secret here'));
-  app.use(express.session());
+  app.use(express.cookieParser());
+  app.use(express.session({
+		secret: "mysecret",
+		store: new RedisStore()	
+	}));
 	app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
@@ -35,6 +42,7 @@ app.configure('development', function(){
 });
 
 app.get("/foo",function(req,res){
+	console.log(req.session);
 	res.send("Foo");
 });
 
